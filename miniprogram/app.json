@@ -1,7 +1,8 @@
 {
   "pages": [
     "pages/today/index",
-    "pages/plants/index"
+    "pages/plants/index",
+    "pages/plants/detail"
   ],
   "window": {
     "navigationBarTitleText": "植物养护助手",

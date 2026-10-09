@@ -2,6 +2,10 @@ type PlantSummary = {
   _id: string;
   name: string;
   species: string;
+  location?: string;
+  archived?: boolean;
+  petSummary?: { cat: string; dog: string };
+  petPreference?: string;
 };
 
 Page({
@@ -12,6 +16,7 @@ Page({
     editingId: "",
     loading: false,
     saving: false,
+    location: "",
   },
 
   onShow() {
@@ -24,6 +29,10 @@ Page({
 
   onSpeciesInput(event: WechatMiniprogram.Input) {
     this.setData({ species: event.detail.value });
+  },
+
+  onLocationInput(event: WechatMiniprogram.Input) {
+    this.setData({ location: event.detail.value });
   },
 
   async loadPlants() {
@@ -57,8 +66,8 @@ Page({
       await wx.cloud.callFunction({
         name: "care-api",
         data: this.data.editingId
-          ? { action: "plants.update", id: this.data.editingId, name, species }
-          : { action: "plants.create", name, species },
+          ? { action: "plants.update", id: this.data.editingId, name, species, location: this.data.location }
+          : { action: "plants.create", name, species, location: this.data.location },
       });
       this.cancelEdit();
       wx.showToast({ title: editing ? "已保存" : "已添加", icon: "success" });
@@ -74,11 +83,30 @@ Page({
   editPlant(event: WechatMiniprogram.TouchEvent) {
     const plant = this.data.plants.find((item) => item._id === event.currentTarget.dataset.id);
     if (!plant) return;
-    this.setData({ editingId: plant._id, name: plant.name, species: plant.species });
+    this.setData({ editingId: plant._id, name: plant.name, species: plant.species, location: plant.location || "" });
+  },
+
+  openDetail(event: WechatMiniprogram.TouchEvent) {
+    const id = event.currentTarget.dataset.id as string;
+    wx.navigateTo({ url: `/pages/plants/detail?id=${encodeURIComponent(id)}` });
+  },
+
+  async toggleArchive(event: WechatMiniprogram.TouchEvent) {
+    const id = event.currentTarget.dataset.id as string;
+    const plant = this.data.plants.find((item) => item._id === id);
+    if (!plant) return;
+    try {
+      await wx.cloud.callFunction({ name: "care-api", data: { action: plant.archived ? "plants.restore" : "plants.archive", id } });
+      wx.showToast({ title: plant.archived ? "已恢复" : "已归档", icon: "success" });
+      await this.loadPlants();
+    } catch (error) {
+      console.error(error);
+      wx.showToast({ title: "操作失败，请重试", icon: "none" });
+    }
   },
 
   cancelEdit() {
-    this.setData({ editingId: "", name: "", species: "" });
+    this.setData({ editingId: "", name: "", species: "", location: "" });
   },
 
   deletePlant(event: WechatMiniprogram.TouchEvent) {

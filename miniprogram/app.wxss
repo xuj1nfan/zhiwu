@@ -73,6 +73,35 @@ page {
   color: #a33f35;
 }
 
+.pet-tags,
+.pet-detail,
+.species-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 14rpx;
+  color: #637363;
+  font-size: 24rpx;
+}
+
+.species-actions .small-button {
+  margin: 0;
+}
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.photo {
+  width: 210rpx;
+  height: 210rpx;
+  border-radius: 12rpx;
+  background: #edf3ed;
+}
+
 .secondary-button {
   margin-top: 12rpx;
 }
@@ -103,4 +132,30 @@ page {
   background: #edf3ed;
   color: #39734d;
   font-size: 26rpx;
+}
+
+.group-title {
+  margin-top: 26rpx;
+  color: #39734d;
+  font-weight: 600;
+}
+
+.empty-line {
+  padding: 16rpx 0;
+  color: #9aa398;
+  font-size: 26rpx;
+}
+
+.overdue-text {
+  color: #b5473c;
+}
+
+.text-button {
+  margin: 10rpx 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #a33f35;
+  font-size: 24rpx;
+  text-align: left;
 }

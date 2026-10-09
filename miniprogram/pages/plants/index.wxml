@@ -6,6 +6,7 @@
     <view wx:if="{{editingId}}" class="muted">正在编辑植物档案</view>
     <input class="field" placeholder="植物昵称，例如：窗边的绿萝" value="{{name}}" bindinput="onNameInput" maxlength="60" />
     <input class="field" placeholder="植物名称或学名（可选）" value="{{species}}" bindinput="onSpeciesInput" maxlength="100" />
+    <input class="field" placeholder="位置，例如阳台、书房（可选）" value="{{location}}" bindinput="onLocationInput" maxlength="60" />
     <button class="button" loading="{{saving}}" disabled="{{saving}}" bindtap="savePlant">{{editingId ? '保存修改' : '添加植物'}}</button>
     <button wx:if="{{editingId}}" class="secondary-button" disabled="{{saving}}" bindtap="cancelEdit">取消编辑</button>
   </view>
@@ -15,8 +16,13 @@
   <view wx:else>
     <view wx:for="{{plants}}" wx:key="_id" class="card plant-card">
       <view class="plant-name">{{item.name}}</view>
+      <view wx:if="{{item.archived}}" class="muted">已归档，待办已停止</view>
       <view wx:if="{{item.species}}" class="muted">{{item.species}}</view>
+      <view wx:if="{{item.location}}" class="muted">位置：{{item.location}}</view>
+      <view class="pet-tags"><text>猫：{{item.petSummary.cat === 'toxic' ? '有毒性记录' : item.petSummary.cat === 'non_toxic' ? '资料列为无毒' : '资料未确认'}}</text><text>狗：{{item.petSummary.dog === 'toxic' ? '有毒性记录' : item.petSummary.dog === 'non_toxic' ? '资料列为无毒' : '资料未确认'}}</text></view>
       <view class="actions">
+        <button class="small-button" data-id="{{item._id}}" bindtap="openDetail">详情</button>
+        <button class="small-button" data-id="{{item._id}}" bindtap="toggleArchive">{{item.archived ? '恢复' : '归档'}}</button>
         <button class="small-button" data-id="{{item._id}}" bindtap="editPlant">编辑</button>
         <button class="small-button danger-button" data-id="{{item._id}}" bindtap="deletePlant">删除</button>
       </view>
