@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="title">今天，看看植物状态</view>
+  <view class="muted">按自己的观察安排养护。到期任务会留在这里；微信订阅通知待模板审核后启用。</view>
+
+  <view class="card">
+    <view class="plant-name">安排养护提醒</view>
+    <picker wx:if="{{plants.length}}" mode="selector" range="{{plantNames}}" value="{{selectedPlantIndex}}" bindchange="onPlantSelect">
+      <view class="field">植物：{{plantNames[selectedPlantIndex]}}　›</view>
+    </picker>
+    <view wx:else class="field muted">请先在“我的植物”添加植物</view>
+    <picker mode="selector" range="{{taskKinds}}" value="{{selectedKindIndex}}" bindchange="onKindSelect">
+      <view class="field">任务：{{taskKinds[selectedKindIndex]}}　›</view>
+    </picker>
+    <picker mode="date" value="{{dueDate}}" start="{{dueDate}}" bindchange="onDateChange">
+      <view class="field">日期：{{dueDate}}（当天上午 9:00）　›</view>
+    </picker>
+    <input class="field" placeholder="备注（可选）" value="{{note}}" bindinput="onNoteInput" maxlength="200" />
+    <button class="button" loading="{{saving}}" disabled="{{saving || !plants.length}}" bindtap="createTask">保存任务</button>
+  </view>
+
+  <view class="card">
+    <view class="plant-name">待办任务</view>
+    <view wx:if="{{loading}}" class="muted">正在读取…</view>
+    <view wx:elif="{{!tasks.length}}" class="muted">还没有待办。任务到期后在这里查看并记录完成情况。</view>
+    <view wx:else>
+      <view wx:for="{{tasks}}" wx:key="_id" class="task-card">
+        <view class="plant-name">{{item.plantName}} · {{item.kindLabel}}</view>
+        <view class="task-date">{{item.overdue ? '已逾期 · ' : '计划时间 · '}}{{item.dueLabel}}</view>
+        <view wx:if="{{item.note}}" class="muted">{{item.note}}</view>
+        <view class="task-actions">
+          <button data-id="{{item._id}}" bindtap="completeTask">完成并记录</button>
+          <button data-id="{{item._id}}" bindtap="postponeTask">顺延一天</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

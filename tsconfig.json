@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "strict": true,
+    "noImplicitAny": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ES2018"],
+    "types": ["miniprogram-api-typings"]
+  },
+  "include": ["miniprogram/**/*.ts"]
+}

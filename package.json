@@ -1,0 +1,20 @@
+{
+  "name": "zhiwu-mini-program",
+  "version": "0.1.0",
+  "private": true,
+  "description": "植物浇水与施肥助手微信小程序",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "preview": "miniprogram-ci preview --pp . --appid \"${WECHAT_APPID}\" --pkp \"${WECHAT_PRIVATE_KEY}\" --uv ${npm_package_version} -r 1 --use-project-config true --qrcode-format image --qrcode-output-dest /tmp/zhiwu-preview.jpg",
+    "upload": "miniprogram-ci upload --pp . --appid \"${WECHAT_APPID}\" --pkp \"${WECHAT_PRIVATE_KEY}\" --uv ${npm_package_version} -r 1 --use-project-config true"
+  },
+  "devDependencies": {
+    "@cloudbase/cli": "^2.12.0",
+    "miniprogram-api-typings": "^5.2.3",
+    "miniprogram-ci": "^2.1.48",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,17 @@
+node_modules/
+miniprogram_npm/
+dist/
+.DS_Store
+
+# Credentials and per-account configuration
+*.key
+*.pem
+*.p12
+.env
+.env.*
+!.env.example
+project.config.local.json
+
+# Local tooling state
+.cloudbase/
+.tcb/

@@ -1,0 +1,14 @@
+{
+  "appid": "wx914c47d48b93a7fe",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "libVersion": "3.8.10",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "compileHotReLoad": true,
+    "useCompilerPlugins": ["typescript"]
+  },
+  "condition": {}
+}

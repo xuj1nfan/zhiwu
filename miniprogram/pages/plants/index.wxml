@@ -1,0 +1,25 @@
+<view class="page">
+  <view class="title">我的植物</view>
+  <view class="muted">每盆植物单独记录，建议会根据物种、盆器和实际观察调整。</view>
+
+  <view class="card">
+    <view wx:if="{{editingId}}" class="muted">正在编辑植物档案</view>
+    <input class="field" placeholder="植物昵称，例如：窗边的绿萝" value="{{name}}" bindinput="onNameInput" maxlength="60" />
+    <input class="field" placeholder="植物名称或学名（可选）" value="{{species}}" bindinput="onSpeciesInput" maxlength="100" />
+    <button class="button" loading="{{saving}}" disabled="{{saving}}" bindtap="savePlant">{{editingId ? '保存修改' : '添加植物'}}</button>
+    <button wx:if="{{editingId}}" class="secondary-button" disabled="{{saving}}" bindtap="cancelEdit">取消编辑</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="card muted">正在读取植物档案…</view>
+  <view wx:elif="{{plants.length === 0}}" class="card muted">还没有植物档案，添加一盆开始记录。</view>
+  <view wx:else>
+    <view wx:for="{{plants}}" wx:key="_id" class="card plant-card">
+      <view class="plant-name">{{item.name}}</view>
+      <view wx:if="{{item.species}}" class="muted">{{item.species}}</view>
+      <view class="actions">
+        <button class="small-button" data-id="{{item._id}}" bindtap="editPlant">编辑</button>
+        <button class="small-button danger-button" data-id="{{item._id}}" bindtap="deletePlant">删除</button>
+      </view>
+    </view>
+  </view>
+</view>

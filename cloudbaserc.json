@@ -1,0 +1,31 @@
+{
+  "envId": "cloudbase-d0g8d7xp96dde6c2e",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "care-api",
+      "dir": "./cloudfunctions/care-api",
+      "runtime": "Nodejs20.19",
+      "handler": "index.main",
+      "timeout": 10,
+      "memorySize": 256,
+      "installDependency": true
+    },
+    {
+      "name": "reminder-dispatch",
+      "dir": "./cloudfunctions/reminder-dispatch",
+      "runtime": "Nodejs20.19",
+      "handler": "index.main",
+      "timeout": 30,
+      "memorySize": 256,
+      "installDependency": true,
+      "triggers": [
+        {
+          "name": "every-five-minutes",
+          "type": "timer",
+          "config": "0 */5 * * * * *"
+        }
+      ]
+    }
+  ]
+}
