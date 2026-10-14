@@ -1,15 +1,77 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="card muted">正在读取…</view>
+  <view wx:if="{{loading}}" class="card muted empty-state">正在读取…</view>
   <block wx:else>
-    <view class="card" wx:if="{{plant}}">
-      <view class="title">{{plant.name}}</view><view class="muted">已确认学名：{{plant.species || '尚未确认'}}</view>
-      <picker mode="selector" range="{{petPreferences}}" value="{{petPreferenceIndex}}" bindchange="setPetPreference"><view class="field">宠物关注：{{petPreferences[petPreferenceIndex]}}　›</view></picker>
-      <view class="pet-detail"><view>猫：{{plant.petSummary.cat === 'toxic' ? '有毒性记录' : plant.petSummary.cat === 'non_toxic' ? '资料列为无毒' : '资料未确认'}}</view><view>狗：{{plant.petSummary.dog === 'toxic' ? '有毒性记录' : plant.petSummary.dog === 'non_toxic' ? '资料列为无毒' : '资料未确认'}}</view></view>
-      <view wx:if="{{plant.petNote}}" class="muted">公共资料说明：{{plant.petNote}}</view><view wx:if="{{plant.petSource}}" class="muted" selectable="true">来源：{{plant.petSource}}</view><button wx:if="{{plant.petSource}}" class="small-button" bindtap="copySource">复制来源链接</button>
+    <view wx:if="{{plant}}" class="card">
+      <view class="title">{{plant.name}}</view>
+      <view class="muted">{{plant.species || '学名未确认'}}</view>
+      <picker mode="selector" range="{{petPreferences}}" value="{{petPreferenceIndex}}" bindchange="setPetPreference"><view class="field"><text class="field-label">宠物关注</text><text class="field-value">{{petPreferences[petPreferenceIndex]}}</text><text class="chevron">›</text></view></picker>
+      <view class="pet-detail"><view>猫 · {{plant.petSummary.cat === 'toxic' ? '有毒性记录' : plant.petSummary.cat === 'non_toxic' ? '资料列为无毒' : '未确认'}}</view><view>狗 · {{plant.petSummary.dog === 'toxic' ? '有毒性记录' : plant.petSummary.dog === 'non_toxic' ? '资料列为无毒' : '未确认'}}</view></view>
+      <view wx:if="{{plant.petNote}}" class="muted info-note">{{plant.petNote}}</view>
+      <view wx:if="{{plant.petSource}}" class="source-row"><view class="muted source-text" selectable="true">来源：{{plant.petSource}}</view><button class="text-button" bindtap="copySource">复制</button></view>
+      <view class="section-caption">常见物种</view>
+      <view class="muted">确认学名后才会显示宠物资料。</view>
+      <view class="species-actions"><button class="small-button" data-species="Epipremnum aureum" bindtap="confirmCommonSpecies">绿萝</button><button class="small-button" data-species="Chlorophytum comosum" bindtap="confirmCommonSpecies">吊兰</button><button class="small-button" data-species="Chamaedorea elegans" bindtap="confirmCommonSpecies">袖珍椰子</button><button class="small-button" data-species="Lilium lancifolium" bindtap="confirmCommonSpecies">卷丹</button></view>
     </view>
-    <view class="card"><view class="plant-name">首批已核对物种</view><view class="muted">只有确认学名后才会关联标签；未知植物保持“资料未确认”。</view><view class="species-actions"><button class="small-button" data-species="Epipremnum aureum" bindtap="confirmCommonSpecies">绿萝</button><button class="small-button" data-species="Chlorophytum comosum" bindtap="confirmCommonSpecies">吊兰</button><button class="small-button" data-species="Chamaedorea elegans" bindtap="confirmCommonSpecies">袖珍椰子</button><button class="small-button" data-species="Lilium lancifolium" bindtap="confirmCommonSpecies">卷丹</button></view></view>
-    <view class="card"><view class="plant-name">生长相册</view><picker mode="date" value="{{photoDate}}" bindchange="onPhotoDateChange"><view class="field">拍摄日期：{{photoDate}}　›</view></picker><input class="field" placeholder="照片备注（可选）" value="{{photoNote}}" bindinput="onPhotoNoteInput" maxlength="200" /><button class="small-button" bindtap="addPhoto">添加照片</button><view wx:if="{{comparePhotos.length === 2}}" class="photo-grid"><view wx:for="{{comparePhotos}}" wx:key="_id"><image class="photo" mode="aspectFill" src="{{item.fileId}}" /><view class="muted">对比：{{item.occurredAt}}</view></view></view><view class="photo-grid"><view wx:for="{{photos}}" wx:key="_id"><image class="photo" mode="aspectFill" src="{{item.fileId}}" bindtap="toggleCompare" data-id="{{item._id}}" /><view class="muted">{{item.occurredAt}}　点图加入对比</view><view wx:if="{{item.note}}" class="muted">{{item.note}}</view><button class="text-button" data-id="{{item._id}}" bindtap="deletePhoto">删除照片</button></view></view></view>
-    <view class="card"><view class="plant-name">{{editingEventId ? '更正养护记录' : '直接记录养护'}}</view><picker mode="selector" range="{{eventKinds}}" value="{{eventKindIndex}}" bindchange="onEventKindChange"><view class="field">类型：{{eventKinds[eventKindIndex]}}　›</view></picker><picker wx:if="{{!editingEventId}}" mode="selector" range="{{taskNames}}" value="{{selectedTaskIndex}}" bindchange="onTaskChange"><view class="field">同时完成待办：{{taskNames[selectedTaskIndex]}}　›</view></picker><picker wx:if="{{eventKindIndex === 2}}" mode="selector" range="{{observationStatuses}}" value="{{observationStatusIndex}}" bindchange="onObservationStatusChange"><view class="field">土壤状态：{{observationStatuses[observationStatusIndex]}}　›</view></picker><picker mode="date" value="{{occurredDate}}" bindchange="onOccurredDateChange"><view class="field">实际日期：{{occurredDate}}　›</view></picker><picker mode="time" value="{{occurredTime}}" bindchange="onOccurredTimeChange"><view class="field">实际时间：{{occurredTime}}　›</view></picker><input class="field" placeholder="备注（可选）" value="{{note}}" bindinput="onNoteInput" maxlength="200" /><input class="field" type="digit" placeholder="用量（可选）" value="{{amount}}" bindinput="onAmountInput" /><input class="field" placeholder="单位，例如毫升或克" value="{{amountUnit}}" bindinput="onUnitInput" maxlength="20" /><button class="button" loading="{{saving}}" disabled="{{saving}}" bindtap="saveEvent">保存记录</button></view>
-    <view class="card"><view class="plant-name">养护历史</view><picker mode="selector" range="{{filterLabels}}" bindchange="onFilterChange"><view class="field">筛选：{{filter === 'all' ? '全部' : filter}}　›</view></picker><view wx:if="{{!visibleEvents.length}}" class="muted">暂无符合条件的记录。</view><view wx:for="{{visibleEvents}}" wx:key="_id" class="task-card"><view class="plant-name">{{item.kind === 'water' ? '浇水' : item.kind === 'fertilize' ? '施肥' : item.kind === 'check' ? '检查' : item.kind === 'observation' ? '观察' : '记录'}}</view><view class="task-date">{{item.occurredAt}}</view><view wx:if="{{item.observationStatus}}" class="muted">土壤：{{item.observationStatus === 'wet' ? '仍湿' : item.observationStatus === 'moderate' ? '适中' : item.observationStatus === 'dry' ? '偏干' : '无法判断'}}</view><view wx:if="{{item.amount !== null}}" class="muted">用量：{{item.amount}}{{item.amountUnit}}</view><view wx:if="{{item.note}}" class="muted">{{item.note}}</view><button class="small-button" data-id="{{item._id}}" bindtap="editEvent">更正</button><button class="text-button" data-id="{{item._id}}" bindtap="deleteEvent">删除错误记录</button></view></view>
+
+    <view wx:if="{{careSpecies}}" class="card care-guide-card">
+      <view class="section-title">养护建议 · {{careSpecies.name_zh}}</view>
+      <view wx:if="{{careSpecies.taxonomy.scientific_name}}" class="muted care-scientific">{{careSpecies.taxonomy.scientific_name}}</view>
+      <view wx:if="{{careSpecies.botanical_profile}}" class="care-description">{{careSpecies.botanical_profile}}</view>
+      <view wx:if="{{careSpecies.environment_thresholds}}" class="care-environment">
+        <text wx:if="{{careSpecies.environment_thresholds.ideal_temp_min_c && careSpecies.environment_thresholds.ideal_temp_max_c}}">适宜温度 {{careSpecies.environment_thresholds.ideal_temp_min_c}}–{{careSpecies.environment_thresholds.ideal_temp_max_c}}℃</text>
+        <text wx:if="{{careSpecies.environment_thresholds.humidity_min_pct && careSpecies.environment_thresholds.humidity_max_pct}}">适宜湿度 {{careSpecies.environment_thresholds.humidity_min_pct}}%–{{careSpecies.environment_thresholds.humidity_max_pct}}%</text>
+      </view>
+      <view wx:for="{{careRules}}" wx:key="_id" class="care-stage">
+        <view class="care-stage-title">{{item.stage_name}}</view>
+        <view wx:if="{{item.season_window}}" class="muted care-season">{{item.season_window}}</view>
+        <view wx:if="{{item.light.description}}" class="care-rule"><text class="care-label">光照</text>{{item.light.description}}</view>
+        <view wx:if="{{item.water_and_humidity.trigger_rule}}" class="care-rule"><text class="care-label">浇水时机</text>{{item.water_and_humidity.trigger_rule}}</view>
+        <view wx:if="{{item.water_and_humidity.description}}" class="care-rule"><text class="care-label">浇水与湿度</text>{{item.water_and_humidity.description}}</view>
+        <view wx:if="{{item.fertilizer.description}}" class="care-rule"><text class="care-label">施肥</text>{{item.fertilizer.description}}</view>
+        <view wx:if="{{item.pot_and_substrate.pot_type}}" class="care-rule"><text class="care-label">花盆</text>{{item.pot_and_substrate.pot_type}}</view>
+        <view wx:if="{{item.pot_and_substrate.substrate}}" class="care-rule"><text class="care-label">基质</text>{{item.pot_and_substrate.substrate}}</view>
+        <view wx:if="{{item.pot_and_substrate.repot_and_prune_note}}" class="care-rule"><text class="care-label">换盆与修剪</text>{{item.pot_and_substrate.repot_and_prune_note}}</view>
+      </view>
+      <view wx:if="{{careSpecies.sources.length}}" class="care-sources">
+        <view class="care-label">资料来源</view>
+        <view wx:for="{{careSpecies.sources}}" wx:key="url" class="muted care-source" selectable="true">{{item.title}} · {{item.url}}</view>
+      </view>
+    </view>
+    <view wx:elif="{{plant.species}}" class="card muted">没有找到“{{plant.species}}”对应的养护资料。请填写物种中文名、别名或学名。</view>
+
+    <view class="card">
+      <view class="section-title">生长相册</view>
+      <picker mode="date" value="{{photoDate}}" bindchange="onPhotoDateChange"><view class="field"><text class="field-label">拍摄日期</text><text class="field-value">{{photoDate}}</text><text class="chevron">›</text></view></picker>
+      <input class="field" placeholder="照片备注（可选）" value="{{photoNote}}" bindinput="onPhotoNoteInput" maxlength="200" />
+      <button class="small-button add-photo-button" bindtap="addPhoto">添加照片</button>
+      <view wx:if="{{comparePhotos.length === 2}}" class="photo-grid compare-grid"><view wx:for="{{comparePhotos}}" wx:key="_id"><image class="photo" mode="aspectFill" src="{{item.fileId}}" /><view class="muted">对比 · {{item.occurredAt}}</view></view></view>
+      <view class="photo-grid"><view wx:for="{{photos}}" wx:key="_id" class="photo-item"><image class="photo" mode="aspectFill" src="{{item.fileId}}" bindtap="toggleCompare" data-id="{{item._id}}" /><view class="muted">{{item.occurredAt}} · 点图对比</view><view wx:if="{{item.note}}" class="muted">{{item.note}}</view><button class="text-button" data-id="{{item._id}}" bindtap="deletePhoto">删除</button></view></view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">{{editingEventId ? '更正记录' : '记录养护'}}</view>
+      <picker mode="selector" range="{{eventKinds}}" value="{{eventKindIndex}}" bindchange="onEventKindChange"><view class="field"><text class="field-label">类型</text><text class="field-value">{{eventKinds[eventKindIndex]}}</text><text class="chevron">›</text></view></picker>
+      <picker wx:if="{{!editingEventId}}" mode="selector" range="{{taskNames}}" value="{{selectedTaskIndex}}" bindchange="onTaskChange"><view class="field"><text class="field-label">关联待办</text><text class="field-value">{{taskNames[selectedTaskIndex]}}</text><text class="chevron">›</text></view></picker>
+      <picker wx:if="{{eventKindIndex === 2}}" mode="selector" range="{{observationStatuses}}" value="{{observationStatusIndex}}" bindchange="onObservationStatusChange"><view class="field"><text class="field-label">土壤状态</text><text class="field-value">{{observationStatuses[observationStatusIndex]}}</text><text class="chevron">›</text></view></picker>
+      <picker mode="date" value="{{occurredDate}}" bindchange="onOccurredDateChange"><view class="field"><text class="field-label">日期</text><text class="field-value">{{occurredDate}}</text><text class="chevron">›</text></view></picker>
+      <picker mode="time" value="{{occurredTime}}" bindchange="onOccurredTimeChange"><view class="field"><text class="field-label">时间</text><text class="field-value">{{occurredTime}}</text><text class="chevron">›</text></view></picker>
+      <input class="field" placeholder="备注（可选）" value="{{note}}" bindinput="onNoteInput" maxlength="200" />
+      <view class="inline-fields"><input class="field" type="digit" placeholder="用量" value="{{amount}}" bindinput="onAmountInput" /><input class="field" placeholder="单位" value="{{amountUnit}}" bindinput="onUnitInput" maxlength="20" /></view>
+      <button class="button" loading="{{saving}}" disabled="{{saving}}" bindtap="saveEvent">保存记录</button>
+    </view>
+
+    <view class="card">
+      <view class="section-title">养护历史 <text class="count">{{visibleEvents.length}}</text></view>
+      <picker mode="selector" range="{{filterLabels}}" bindchange="onFilterChange"><view class="field"><text class="field-label">筛选</text><text class="field-value">{{filter === 'all' ? '全部' : filter}}</text><text class="chevron">›</text></view></picker>
+      <view wx:if="{{!visibleEvents.length}}" class="muted empty-state">暂无记录</view>
+      <view wx:for="{{visibleEvents}}" wx:key="_id" class="task-card history-card">
+        <view class="plant-name">{{item.kind === 'water' ? '浇水' : item.kind === 'fertilize' ? '施肥' : item.kind === 'check' ? '检查' : item.kind === 'observation' ? '观察' : item.kind === 'milestone' ? '里程碑' : item.kind === 'repot' ? '换盆' : '记录'}}</view>
+        <view class="task-date">{{item.occurredAt}}</view>
+        <view wx:if="{{item.observationStatus}}" class="muted">土壤 · {{item.observationStatus === 'wet' ? '仍湿' : item.observationStatus === 'moderate' ? '适中' : item.observationStatus === 'dry' ? '偏干' : '无法判断'}}</view>
+        <view wx:if="{{item.amount !== null}}" class="muted">用量 · {{item.amount}}{{item.amountUnit}}</view>
+        <view wx:if="{{item.note}}" class="muted">{{item.note}}</view>
+        <view class="history-actions"><button class="small-button" data-id="{{item._id}}" bindtap="editEvent">更正</button><button class="text-button" data-id="{{item._id}}" bindtap="deleteEvent">删除</button></view>
+      </view>
+    </view>
   </block>
 </view>

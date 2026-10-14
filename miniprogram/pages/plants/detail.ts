@@ -1,6 +1,8 @@
 type PetStatus = "toxic" | "non_toxic" | "unknown";
 type EventKind = "water" | "fertilize" | "check" | "observation" | "milestone" | "repot";
 type Plant = { _id: string; name: string; species: string; petSummary?: { cat: PetStatus; dog: PetStatus }; petPreference?: string; petSource?: string; petCheckedAt?: string | Date; petNote?: string };
+type CareSpecies = { id: string; name_zh: string; botanical_profile?: string; taxonomy?: { scientific_name?: string }; environment_thresholds?: { ideal_temp_min_c?: number; ideal_temp_max_c?: number; humidity_min_pct?: number; humidity_max_pct?: number } };
+type CareRule = { _id: string; stage_code: string; stage_name: string; season_window?: string; light?: { description?: string }; water_and_humidity?: { trigger_rule?: string; description?: string }; fertilizer?: { description?: string }; pot_and_substrate?: { pot_type?: string; substrate?: string; repot_and_prune_note?: string } };
 type PendingTask = { _id: string; kind: EventKind; dueAt: string | Date };
 type PlantPhoto = { _id: string; fileId: string; occurredAt: string | Date; note: string };
 type CareEvent = { _id: string; kind: EventKind; occurredAt: string | Date; note: string; observationStatus?: string; amount?: number | null; amountUnit?: string; taskId?: string };
@@ -9,9 +11,34 @@ const STATUS_LABELS: Record<PetStatus, string> = { toxic: "有毒性记录", non
 function localDateTime(value: string | Date) { const d = new Date(value); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
 
 Page({
-  data: { id: "", plant: null as Plant | null, events: [] as CareEvent[], visibleEvents: [] as CareEvent[], photos: [] as PlantPhoto[], comparePhotos: [] as PlantPhoto[], photoDate: localDateTime(new Date()).slice(0, 10), photoNote: "", pendingTasks: [] as PendingTask[], taskNames: ["不关联待办"], selectedTaskIndex: 0, editingEventId: "", filter: "all", filterLabels: ["全部", "浇水", "施肥", "检查", "观察", "里程碑", "换盆"], loading: false, saving: false, eventKindIndex: 0, eventKinds: ["浇水", "施肥", "检查", "观察", "里程碑", "换盆"], eventKindValues: ["water", "fertilize", "check", "observation", "milestone", "repot"] as EventKind[], observationStatuses: ["仍湿", "适中", "偏干", "无法判断"], observationStatusValues: ["wet", "moderate", "dry", "unknown"], observationStatusIndex: 3, occurredDate: localDateTime(new Date()).slice(0, 10), occurredTime: localDateTime(new Date()).slice(11, 16), note: "", amount: "", amountUnit: "毫升", petPreferenceIndex: 0, petPreferences: ["不设置", "养猫", "养狗", "养猫和狗"] },
+  data: { id: "", plant: null as Plant | null, careSpecies: null as CareSpecies | null, careRules: [] as CareRule[], events: [] as CareEvent[], visibleEvents: [] as CareEvent[], photos: [] as PlantPhoto[], comparePhotos: [] as PlantPhoto[], photoDate: localDateTime(new Date()).slice(0, 10), photoNote: "", pendingTasks: [] as PendingTask[], taskNames: ["不关联待办"], selectedTaskIndex: 0, editingEventId: "", filter: "all", filterLabels: ["全部", "浇水", "施肥", "检查", "观察", "里程碑", "换盆"], loading: false, saving: false, eventKindIndex: 0, eventKinds: ["浇水", "施肥", "检查", "观察", "里程碑", "换盆"], eventKindValues: ["water", "fertilize", "check", "observation", "milestone", "repot"] as EventKind[], observationStatuses: ["仍湿", "适中", "偏干", "无法判断"], observationStatusValues: ["wet", "moderate", "dry", "unknown"], observationStatusIndex: 3, occurredDate: localDateTime(new Date()).slice(0, 10), occurredTime: localDateTime(new Date()).slice(11, 16), note: "", amount: "", amountUnit: "毫升", petPreferenceIndex: 0, petPreferences: ["不设置", "养猫", "养狗", "养猫和狗"] },
   onLoad(options: Record<string, string>) { this.setData({ id: options.id || "" }); void this.load(); },
-  async load() { this.setData({ loading: true }); try { const response = await wx.cloud.callFunction({ name: "care-api", data: { action: "plants.get", id: this.data.id } }); const result = response.result as { plant: Plant; events: CareEvent[]; tasks: PendingTask[]; photos: PlantPhoto[] }; const events = result.events || []; const pendingTasks = result.tasks || []; this.setData({ plant: result.plant, events, photos: result.photos || [], pendingTasks, taskNames: ["不关联待办", ...pendingTasks.map((item) => `${item.kind === "water" ? "浇水" : item.kind === "fertilize" ? "施肥" : "检查"} · ${localDateTime(item.dueAt)}`)], selectedTaskIndex: 0, visibleEvents: this.data.filter === "all" ? events : events.filter((item) => item.kind === this.data.filter), petPreferenceIndex: ["none", "cat", "dog", "both"].indexOf(result.plant.petPreference || "none") }); } catch (error) { console.error(error); wx.showToast({ title: "读取失败", icon: "none" }); } finally { this.setData({ loading: false }); } },
+  async load() {
+    this.setData({ loading: true });
+    try {
+      const response = await wx.cloud.callFunction({ name: "care-api", data: { action: "plants.get", id: this.data.id } });
+      const result = response.result as { plant: Plant; events: CareEvent[]; tasks: PendingTask[]; photos: PlantPhoto[]; careGuide?: { species: CareSpecies | null; rules: CareRule[] } };
+      const events = result.events || [];
+      const pendingTasks = result.tasks || [];
+      this.setData({
+        plant: result.plant,
+        careSpecies: result.careGuide?.species || null,
+        careRules: result.careGuide?.rules || [],
+        events,
+        photos: result.photos || [],
+        pendingTasks,
+        taskNames: ["不关联待办", ...pendingTasks.map((item) => `${item.kind === "water" ? "浇水" : item.kind === "fertilize" ? "施肥" : "检查"} · ${localDateTime(item.dueAt)}`)],
+        selectedTaskIndex: 0,
+        visibleEvents: this.data.filter === "all" ? events : events.filter((item) => item.kind === this.data.filter),
+        petPreferenceIndex: ["none", "cat", "dog", "both"].indexOf(result.plant.petPreference || "none"),
+      });
+    } catch (error) {
+      console.error(error);
+      wx.showToast({ title: "读取失败", icon: "none" });
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
   onTaskChange(event: WechatMiniprogram.PickerChange) { this.setData({ selectedTaskIndex: Number(event.detail.value) }); },
   onPhotoDateChange(event: WechatMiniprogram.PickerChange) { this.setData({ photoDate: String(event.detail.value) }); },
   onPhotoNoteInput(event: WechatMiniprogram.Input) { this.setData({ photoNote: event.detail.value }); },

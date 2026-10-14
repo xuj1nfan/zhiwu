@@ -7,12 +7,15 @@ type PlantSummary = {
   petSummary?: { cat: string; dog: string };
   petPreference?: string;
 };
+type SpeciesSuggestion = { id: string; name_zh: string; aliases: string[]; scientific_name: string; cultivation_mode: string };
+let speciesSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
 Page({
   data: {
     plants: [] as PlantSummary[],
     name: "",
     species: "",
+    speciesSuggestions: [] as SpeciesSuggestion[],
     editingId: "",
     loading: false,
     saving: false,
@@ -28,7 +31,25 @@ Page({
   },
 
   onSpeciesInput(event: WechatMiniprogram.Input) {
-    this.setData({ species: event.detail.value });
+    const species = event.detail.value;
+    this.setData({ species, speciesSuggestions: [] });
+    const query = species.trim();
+    if (speciesSearchTimer) clearTimeout(speciesSearchTimer);
+    if (!query) return;
+    speciesSearchTimer = setTimeout(() => {
+      wx.cloud.callFunction({ name: "care-api", data: { action: "species.search", query } })
+        .then((response) => {
+          if (this.data.species.trim() !== query) return;
+          const result = response.result as { species: SpeciesSuggestion[] };
+          this.setData({ speciesSuggestions: result.species || [] });
+        })
+        .catch((error) => console.error("Failed to search plant species", error));
+    }, 250);
+  },
+
+  chooseSpecies(event: WechatMiniprogram.TouchEvent) {
+    const species = event.currentTarget.dataset.name as string;
+    this.setData({ species, speciesSuggestions: [] });
   },
 
   onLocationInput(event: WechatMiniprogram.Input) {
@@ -83,7 +104,7 @@ Page({
   editPlant(event: WechatMiniprogram.TouchEvent) {
     const plant = this.data.plants.find((item) => item._id === event.currentTarget.dataset.id);
     if (!plant) return;
-    this.setData({ editingId: plant._id, name: plant.name, species: plant.species, location: plant.location || "" });
+    this.setData({ editingId: plant._id, name: plant.name, species: plant.species, speciesSuggestions: [], location: plant.location || "" });
   },
 
   openDetail(event: WechatMiniprogram.TouchEvent) {
@@ -106,7 +127,7 @@ Page({
   },
 
   cancelEdit() {
-    this.setData({ editingId: "", name: "", species: "", location: "" });
+    this.setData({ editingId: "", name: "", species: "", speciesSuggestions: [], location: "" });
   },
 
   deletePlant(event: WechatMiniprogram.TouchEvent) {

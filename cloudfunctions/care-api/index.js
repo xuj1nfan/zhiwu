@@ -45,6 +45,20 @@ exports.main = async (event = {}) => {
     if (!result.data || result.data.ownerOpenid !== openid) throw new Error("Care record not found.");
     return result.data;
   }
+  async function loadCareGuide(speciesName) {
+    const query = text(speciesName, 120).toLocaleLowerCase();
+    if (!query) return { species: null, rules: [] };
+    const result = await db.collection("species").limit(100).get();
+    const species = result.data.find((item) => {
+      const names = [item.name_zh, item.taxonomy?.scientific_name, ...(item.aliases || []), ...(item.taxonomy?.synonyms || [])];
+      return names.some((name) => typeof name === "string" && name.trim().toLocaleLowerCase() === query);
+    });
+    if (!species) return { species: null, rules: [] };
+    const rulesResult = await db.collection("care_rules").where({ species_id: species.id }).limit(50).get();
+    const rules = rulesResult.data;
+    if (rules.every((rule) => Number.isFinite(rule.stage_order))) rules.sort((a, b) => a.stage_order - b.stage_order);
+    return { species, rules };
+  }
   async function atomic(callback) {
     if (typeof db.runTransaction === "function") return db.runTransaction(callback);
     return callback(db);
@@ -59,16 +73,35 @@ exports.main = async (event = {}) => {
       if (!rateUnit || !Number.isFinite(rate) || rate <= 0 || !Number.isFinite(volume) || volume <= 0) throw new Error("标签剂量和水量必须为正数。");
       return { amount: rate * volume / 1000, amountUnit: rateUnit === "g_per_l" ? "g" : "ml", rate, volume, rateUnit };
     }
+    case "species.search": {
+      const query = text(event.query, 120).toLocaleLowerCase();
+      if (!query) return { species: [] };
+      const result = await db.collection("species").limit(100).get();
+      const species = result.data.filter((item) => {
+        const names = [item.name_zh, item.taxonomy?.scientific_name, ...(item.aliases || []), ...(item.taxonomy?.synonyms || [])];
+        return names.some((name) => typeof name === "string" && name.toLocaleLowerCase().includes(query));
+      }).slice(0, 20).map((item) => ({
+        id: item.id,
+        name_zh: item.name_zh,
+        aliases: item.aliases || [],
+        scientific_name: item.taxonomy?.scientific_name || "",
+        cultivation_mode: item.cultivation_mode || "",
+      }));
+      return { species };
+    }
     case "plants.list": {
       const result = await db.collection("plants").where({ ownerOpenid: openid }).orderBy("updatedAt", "desc").limit(100).get();
       return { plants: result.data.map((plant) => ({ ...plant, petSummary: plant.petSummary || { cat: "unknown", dog: "unknown" }, petPreference: plant.petPreference || "none" })) };
     }
     case "plants.get": {
       const plant = await ownedPlant(event.id);
-      const events = await db.collection("care_events").where({ ownerOpenid: openid, plantId: event.id }).orderBy("occurredAt", "desc").limit(200).get();
-      const tasks = await db.collection("care_tasks").where({ ownerOpenid: openid, plantId: event.id, status: "pending" }).orderBy("dueAt", "asc").limit(100).get();
-      const photos = await db.collection("plant_photos").where({ ownerOpenid: openid, plantId: event.id, deleted: false }).orderBy("occurredAt", "desc").limit(100).get().catch(() => ({ data: [] }));
-      return { plant: { ...plant, petSummary: plant.petSummary || { cat: "unknown", dog: "unknown" }, petPreference: plant.petPreference || "none" }, events: events.data.filter((item) => !item.deleted), tasks: tasks.data, photos: photos.data };
+      const [events, tasks, photos, careGuide] = await Promise.all([
+        db.collection("care_events").where({ ownerOpenid: openid, plantId: event.id }).orderBy("occurredAt", "desc").limit(200).get(),
+        db.collection("care_tasks").where({ ownerOpenid: openid, plantId: event.id, status: "pending" }).orderBy("dueAt", "asc").limit(100).get(),
+        db.collection("plant_photos").where({ ownerOpenid: openid, plantId: event.id, deleted: false }).orderBy("occurredAt", "desc").limit(100).get().catch(() => ({ data: [] })),
+        loadCareGuide(plant.species),
+      ]);
+      return { plant: { ...plant, petSummary: plant.petSummary || { cat: "unknown", dog: "unknown" }, petPreference: plant.petPreference || "none" }, events: events.data.filter((item) => !item.deleted), tasks: tasks.data, photos: photos.data, careGuide };
     }
     case "plants.create":
     case "plants.update": {

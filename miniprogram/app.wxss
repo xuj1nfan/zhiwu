@@ -5,67 +5,122 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
-.page {
-  padding: 32rpx;
+button::after {
+  border: 0;
 }
 
-.card {
-  margin-top: 24rpx;
-  padding: 28rpx;
-  border-radius: 20rpx;
-  background: #ffffff;
-  box-shadow: 0 8rpx 28rpx rgba(37, 67, 43, 0.06);
+.page {
+  padding: 28rpx 30rpx 48rpx;
+}
+
+.page-heading {
+  padding: 8rpx 2rpx 2rpx;
 }
 
 .title {
   font-size: 40rpx;
   font-weight: 650;
+  line-height: 1.3;
+}
+
+.page-heading .muted {
+  margin-top: 6rpx;
+}
+
+.section-title,
+.list-heading {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.section-caption {
+  margin-top: 22rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.card {
+  margin-top: 18rpx;
+  padding: 24rpx;
+  border-radius: 18rpx;
+  background: #fff;
 }
 
 .muted {
   color: #778071;
-  font-size: 28rpx;
-  line-height: 1.6;
+  font-size: 26rpx;
+  line-height: 1.55;
 }
 
-.button {
-  margin-top: 24rpx;
-  border-radius: 14rpx;
-  background: #39734d;
-  color: #ffffff;
+.card > .muted + .field,
+.section-title + .field,
+.section-title + picker .field {
+  margin-top: 10rpx;
 }
 
 .field {
-  min-height: 84rpx;
-  padding: 0 20rpx;
-  border-bottom: 1rpx solid #e8ede6;
-  font-size: 30rpx;
-}
-
-.plant-card {
-  margin-top: 18rpx;
-}
-
-.plant-name {
-  font-size: 34rpx;
-  font-weight: 600;
-}
-
-.actions {
   display: flex;
-  gap: 16rpx;
-  margin-top: 12rpx;
+  align-items: center;
+  min-height: 76rpx;
+  padding: 0 4rpx;
+  border-bottom: 1rpx solid #edf0eb;
+  color: #374339;
+  font-size: 28rpx;
+  box-sizing: border-box;
 }
 
-.small-button,
-.secondary-button {
-  margin: 0;
-  padding: 0 24rpx;
+picker .field {
+  display: flex;
+}
+
+.field-value {
+  margin-left: auto;
+  color: #778071;
+}
+
+.field .chevron {
+  margin-left: 12rpx;
+  color: #a0a89d;
+  font-size: 34rpx;
+}
+
+input.field {
+  display: block;
+  width: 100%;
+  height: 76rpx;
+  line-height: 76rpx;
+}
+
+.button {
+  margin: 20rpx 0 0;
   border-radius: 12rpx;
-  background: #edf3ed;
-  color: #39734d;
+  background: #39734d;
+  color: #fff;
+  font-size: 28rpx;
+  line-height: 82rpx;
+}
+
+.secondary-button {
+  margin: 10rpx 0 0;
+  padding: 0 22rpx;
+  border-radius: 12rpx;
+  background: #f1f4ef;
+  color: #506151;
   font-size: 26rpx;
-  line-height: 68rpx;
+  line-height: 70rpx;
+}
+
+.small-button {
+  margin: 0;
+  padding: 0 18rpx;
+  border-radius: 10rpx;
+  background: #f0f4ef;
+  color: #39734d;
+  font-size: 24rpx;
+  line-height: 62rpx;
 }
 
 .danger-button {
@@ -73,89 +128,320 @@ page {
   color: #a33f35;
 }
 
+.actions {
+  display: flex;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.actions button {
+  flex: 1;
+  padding: 0 8rpx;
+}
+
+.plant-card {
+  margin-top: 12rpx;
+}
+
+.plant-topline,
+.task-heading,
+.source-row,
+.completed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.plant-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.status-pill,
+.count {
+  color: #778071;
+  font-size: 23rpx;
+  font-weight: 400;
+}
+
+.status-pill {
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  background: #f1f3ef;
+}
+
 .pet-tags,
 .pet-detail,
 .species-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: 10rpx;
   margin-top: 14rpx;
   color: #637363;
-  font-size: 24rpx;
+  font-size: 23rpx;
 }
 
-.species-actions .small-button {
-  margin: 0;
+.pet-tags text,
+.pet-detail view {
+  padding: 6rpx 10rpx;
+  border-radius: 8rpx;
+  background: #f5f7f3;
+}
+
+.species-actions {
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+
+.species-suggestions {
+  margin-top: -2rpx;
+  border-radius: 0 0 12rpx 12rpx;
+  background: #f7f9f5;
+}
+
+.species-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  min-height: 72rpx;
+  padding: 0 12rpx;
+  border-bottom: 1rpx solid #edf0eb;
+  color: #374339;
+  font-size: 26rpx;
+}
+
+.species-suggestion .muted {
+  font-size: 22rpx;
+  text-align: right;
+}
+
+.care-guide-card {
+  line-height: 1.6;
+}
+
+.care-scientific {
+  margin-top: 4rpx;
+  font-style: italic;
+}
+
+.care-description {
+  margin-top: 14rpx;
+  color: #465448;
+  font-size: 26rpx;
+  line-height: 1.65;
+}
+
+.care-environment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.care-environment text {
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  background: #f2f6f0;
+  color: #527056;
+  font-size: 23rpx;
+}
+
+.care-stage {
+  margin-top: 20rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid #edf0eb;
+}
+
+.care-stage-title {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.care-season {
+  margin-top: 2rpx;
+}
+
+.care-rule {
+  margin-top: 12rpx;
+  color: #465448;
+  font-size: 25rpx;
+  line-height: 1.6;
+}
+
+.care-label {
+  display: block;
+  margin-bottom: 2rpx;
+  color: #778071;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+
+.care-sources {
+  margin-top: 20rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx solid #edf0eb;
+}
+
+.care-source {
+  margin-top: 8rpx;
+  overflow-wrap: anywhere;
 }
 
 .photo-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
-  margin-top: 16rpx;
+  gap: 14rpx;
+  margin-top: 14rpx;
+}
+
+.photo-item {
+  width: 210rpx;
 }
 
 .photo {
   width: 210rpx;
   height: 210rpx;
-  border-radius: 12rpx;
+  border-radius: 10rpx;
   background: #edf3ed;
 }
 
-.secondary-button {
-  margin-top: 12rpx;
+.compare-grid {
+  padding: 12rpx;
+  border-radius: 12rpx;
+  background: #f5f7f3;
 }
 
-.task-date {
-  margin-top: 10rpx;
-  color: #39734d;
-  font-size: 28rpx;
+.add-photo-button {
+  margin-top: 14rpx;
+}
+
+.inline-fields {
+  display: flex;
+  gap: 20rpx;
+}
+
+.inline-fields .field {
+  flex: 1;
+  min-width: 0;
 }
 
 .task-card {
-  margin-top: 24rpx;
-  padding-top: 20rpx;
-  border-top: 1rpx solid #e8ede6;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #edf0eb;
 }
 
-.task-actions {
-  display: flex;
-  gap: 12rpx;
-  margin-top: 18rpx;
-}
-
-.task-actions button {
-  flex: 1;
-  margin: 0;
-  padding: 0 12rpx;
-  border-radius: 12rpx;
-  background: #edf3ed;
-  color: #39734d;
-  font-size: 26rpx;
-}
-
-.group-title {
-  margin-top: 26rpx;
-  color: #39734d;
-  font-weight: 600;
-}
-
-.empty-line {
-  padding: 16rpx 0;
-  color: #9aa398;
-  font-size: 26rpx;
+.task-date {
+  margin-top: 4rpx;
+  color: #657465;
+  font-size: 24rpx;
+  white-space: nowrap;
 }
 
 .overdue-text {
   color: #b5473c;
 }
 
-.text-button {
-  margin: 10rpx 0 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #a33f35;
+.task-note {
+  margin-top: 6rpx;
+  color: #778071;
   font-size: 24rpx;
-  text-align: left;
+}
+
+.task-actions,
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.task-actions button {
+  flex: 1;
+  margin: 0;
+  padding: 0 6rpx;
+  border-radius: 9rpx;
+  background: #f1f4ef;
+  color: #506151;
+  font-size: 23rpx;
+  line-height: 58rpx;
+}
+
+.task-actions .primary-mini {
+  background: #eaf2ea;
+  color: #39734d;
+}
+
+.task-actions .quiet-action {
+  flex: 0 0 auto;
+  padding: 0 10rpx;
+  background: transparent;
+  color: #9b625b;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 20rpx;
+  color: #39734d;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.empty-line {
+  padding: 10rpx 0 2rpx;
+  color: #a0a89d;
+  font-size: 24rpx;
+}
+
+.empty-state {
+  padding: 14rpx 2rpx;
+}
+
+.completed-row {
+  padding: 16rpx 0 0;
+  color: #536054;
+  font-size: 26rpx;
+}
+
+.text-button {
+  margin: 0;
+  padding: 0 4rpx;
+  background: transparent;
+  color: #9b625b;
+  font-size: 24rpx;
+  line-height: 56rpx;
+}
+
+.info-note {
+  margin-top: 12rpx;
+}
+
+.source-row {
+  align-items: flex-start;
+  margin-top: 10rpx;
+}
+
+.source-text {
+  flex: 1;
+  word-break: break-all;
+}
+
+.history-card .task-date {
+  margin: 6rpx 0;
+}
+
+.history-actions {
+  justify-content: flex-start;
+}
+
+.history-actions .text-button {
+  margin-left: 8rpx;
+}
+
+.list-heading {
+  margin: 24rpx 2rpx 10rpx;
 }

@@ -1,34 +1,55 @@
 <view class="page">
-  <view class="title">今天，看看植物状态</view>
-  <view class="muted">待办只在小程序内显示，完成后会写入养护记录。</view>
+  <view class="page-heading">
+    <view class="title">今日养护</view>
+    <view class="muted">安排任务，按时记录。</view>
+  </view>
 
   <view class="card">
-    <view class="plant-name">{{editingId ? '编辑未完成任务' : '安排养护提醒'}}</view>
-    <picker wx:if="{{plants.length}}" mode="selector" range="{{plantNames}}" value="{{selectedPlantIndex}}" bindchange="onPlantSelect"><view class="field">植物：{{plantNames[selectedPlantIndex]}}　›</view></picker>
-    <view wx:else class="field muted">请先在“我的植物”添加植物</view>
-    <picker mode="selector" range="{{taskKinds}}" value="{{selectedKindIndex}}" bindchange="onKindSelect"><view class="field">任务：{{taskKinds[selectedKindIndex]}}　›</view></picker>
-    <picker mode="date" value="{{dueDate}}" bindchange="onDateChange"><view class="field">日期：{{dueDate}}　›</view></picker>
-    <picker mode="time" value="{{dueTime}}" bindchange="onTimeChange"><view class="field">时间：{{dueTime}}　›</view></picker>
+    <view class="section-title">{{editingId ? '编辑任务' : '新建任务'}}</view>
+    <picker wx:if="{{plants.length}}" mode="selector" range="{{plantNames}}" value="{{selectedPlantIndex}}" bindchange="onPlantSelect"><view class="field"><text class="field-label">植物</text><text class="field-value">{{plantNames[selectedPlantIndex]}}</text><text class="chevron">›</text></view></picker>
+    <view wx:else class="field muted">请先添加植物</view>
+    <picker mode="selector" range="{{taskKinds}}" value="{{selectedKindIndex}}" bindchange="onKindSelect"><view class="field"><text class="field-label">任务</text><text class="field-value">{{taskKinds[selectedKindIndex]}}</text><text class="chevron">›</text></view></picker>
+    <picker mode="date" value="{{dueDate}}" bindchange="onDateChange"><view class="field"><text class="field-label">日期</text><text class="field-value">{{dueDate}}</text><text class="chevron">›</text></view></picker>
+    <picker mode="time" value="{{dueTime}}" bindchange="onTimeChange"><view class="field"><text class="field-label">时间</text><text class="field-value">{{dueTime}}</text><text class="chevron">›</text></view></picker>
     <input class="field" placeholder="备注（可选）" value="{{note}}" bindinput="onNoteInput" maxlength="200" />
-    <button class="button" loading="{{saving}}" disabled="{{saving || !plants.length}}" bindtap="saveTask">{{editingId ? '保存修改' : '保存任务'}}</button>
-    <button wx:if="{{editingId}}" class="secondary-button" bindtap="cancelEdit">取消编辑</button>
+    <button class="button" loading="{{saving}}" disabled="{{saving || !plants.length}}" bindtap="saveTask">{{editingId ? '保存修改' : '添加任务'}}</button>
+    <button wx:if="{{editingId}}" class="secondary-button" bindtap="cancelEdit">取消</button>
   </view>
 
   <view class="card">
-    <view class="plant-name">待办任务</view>
-    <view wx:if="{{loading}}" class="muted">正在读取…</view>
-    <view wx:elif="{{!tasks.length}}" class="muted">还没有待办任务。</view>
-    <view wx:else>
-      <view class="group-title">已逾期（{{overdue.length}}）</view>
-      <view wx:if="{{!overdue.length}}" class="empty-line">没有逾期任务</view>
-      <view wx:for="{{overdue}}" wx:key="_id" class="task-card"><view class="plant-name">{{item.plantName}} · {{item.kindLabel}}</view><view class="task-date overdue-text">{{item.dueLabel}}</view><view wx:if="{{item.note}}" class="muted">{{item.note}}</view><view class="task-actions"><button loading="{{busyId === item._id}}" disabled="{{busyId}}" data-id="{{item._id}}" bindtap="completeTask">完成并记录</button><button data-id="{{item._id}}" bindtap="postponeTask">延期</button><button data-id="{{item._id}}" bindtap="editTask">编辑</button></view><button class="text-button" data-id="{{item._id}}" bindtap="cancelTask">取消任务</button></view>
-      <view class="group-title">今天（{{today.length}}）</view>
-      <view wx:if="{{!today.length}}" class="empty-line">今天没有任务</view>
-      <view wx:for="{{today}}" wx:key="_id" class="task-card"><view class="plant-name">{{item.plantName}} · {{item.kindLabel}}</view><view class="task-date">{{item.dueLabel}}</view><view wx:if="{{item.note}}" class="muted">{{item.note}}</view><view class="task-actions"><button loading="{{busyId === item._id}}" disabled="{{busyId}}" data-id="{{item._id}}" bindtap="completeTask">完成并记录</button><button data-id="{{item._id}}" bindtap="postponeTask">延期</button><button data-id="{{item._id}}" bindtap="editTask">编辑</button></view><button class="text-button" data-id="{{item._id}}" bindtap="cancelTask">取消任务</button></view>
-      <view class="group-title">未来（{{future.length}}）</view>
-      <view wx:if="{{!future.length}}" class="empty-line">没有未来任务</view>
-      <view wx:for="{{future}}" wx:key="_id" class="task-card"><view class="plant-name">{{item.plantName}} · {{item.kindLabel}}</view><view class="task-date">{{item.dueLabel}}</view><view wx:if="{{item.note}}" class="muted">{{item.note}}</view><view class="task-actions"><button data-id="{{item._id}}" bindtap="editTask">编辑</button><button data-id="{{item._id}}" bindtap="postponeTask">延期</button></view><button class="text-button" data-id="{{item._id}}" bindtap="cancelTask">取消任务</button></view>
-    </view>
+    <view class="section-title">待办 <text class="count">{{tasks.length}}</text></view>
+    <view wx:if="{{loading}}" class="muted empty-state">正在读取…</view>
+    <view wx:elif="{{!tasks.length}}" class="muted empty-state">暂无待办，添加一个养护任务吧。</view>
+    <block wx:else>
+      <view class="group-title">逾期 <text class="count">{{overdue.length}}</text></view>
+      <view wx:if="{{!overdue.length}}" class="empty-line">暂无</view>
+      <view wx:for="{{overdue}}" wx:key="_id" class="task-card">
+        <view class="task-heading"><view class="plant-name">{{item.plantName}} · {{item.kindLabel}}</view><view class="task-date overdue-text">{{item.dueLabel}}</view></view>
+        <view wx:if="{{item.note}}" class="task-note">{{item.note}}</view>
+        <view class="task-actions"><button class="primary-mini" loading="{{busyId === item._id}}" disabled="{{busyId}}" data-id="{{item._id}}" bindtap="completeTask">完成</button><button data-id="{{item._id}}" bindtap="postponeTask">延期</button><button data-id="{{item._id}}" bindtap="editTask">编辑</button><button class="quiet-action" data-id="{{item._id}}" bindtap="cancelTask">取消</button></view>
+      </view>
+
+      <view class="group-title">今天 <text class="count">{{today.length}}</text></view>
+      <view wx:if="{{!today.length}}" class="empty-line">暂无</view>
+      <view wx:for="{{today}}" wx:key="_id" class="task-card">
+        <view class="task-heading"><view class="plant-name">{{item.plantName}} · {{item.kindLabel}}</view><view class="task-date">{{item.dueLabel}}</view></view>
+        <view wx:if="{{item.note}}" class="task-note">{{item.note}}</view>
+        <view class="task-actions"><button class="primary-mini" loading="{{busyId === item._id}}" disabled="{{busyId}}" data-id="{{item._id}}" bindtap="completeTask">完成</button><button data-id="{{item._id}}" bindtap="postponeTask">延期</button><button data-id="{{item._id}}" bindtap="editTask">编辑</button><button class="quiet-action" data-id="{{item._id}}" bindtap="cancelTask">取消</button></view>
+      </view>
+
+      <view class="group-title">之后 <text class="count">{{future.length}}</text></view>
+      <view wx:if="{{!future.length}}" class="empty-line">暂无</view>
+      <view wx:for="{{future}}" wx:key="_id" class="task-card">
+        <view class="task-heading"><view class="plant-name">{{item.plantName}} · {{item.kindLabel}}</view><view class="task-date">{{item.dueLabel}}</view></view>
+        <view wx:if="{{item.note}}" class="task-note">{{item.note}}</view>
+        <view class="task-actions"><button data-id="{{item._id}}" bindtap="editTask">编辑</button><button data-id="{{item._id}}" bindtap="postponeTask">延期</button><button class="quiet-action" data-id="{{item._id}}" bindtap="cancelTask">取消</button></view>
+      </view>
+    </block>
   </view>
-  <view class="card"><view class="plant-name">最近完成</view><view wx:if="{{!completed.length}}" class="muted">暂无最近完成任务。</view><view wx:for="{{completed}}" wx:key="_id" class="task-card"><view class="muted">{{item.plantName}} · {{item.kind === 'water' ? '浇水' : item.kind === 'fertilize' ? '施肥' : '检查'}}</view><button class="text-button" data-id="{{item._id}}" bindtap="undoTask">撤销误完成</button></view></view>
+
+  <view class="card">
+    <view class="section-title">最近完成</view>
+    <view wx:if="{{!completed.length}}" class="muted empty-state">暂无记录</view>
+    <view wx:for="{{completed}}" wx:key="_id" class="completed-row"><view>{{item.plantName}} · {{item.kind === 'water' ? '浇水' : item.kind === 'fertilize' ? '施肥' : '检查'}}</view><button class="text-button" data-id="{{item._id}}" bindtap="undoTask">撤销</button></view>
+  </view>
 </view>

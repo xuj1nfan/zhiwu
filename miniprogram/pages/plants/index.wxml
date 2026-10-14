@@ -1,29 +1,36 @@
 <view class="page">
-  <view class="title">我的植物</view>
-  <view class="muted">每盆植物单独记录，建议会根据物种、盆器和实际观察调整。</view>
-
-  <view class="card">
-    <view wx:if="{{editingId}}" class="muted">正在编辑植物档案</view>
-    <input class="field" placeholder="植物昵称，例如：窗边的绿萝" value="{{name}}" bindinput="onNameInput" maxlength="60" />
-    <input class="field" placeholder="植物名称或学名（可选）" value="{{species}}" bindinput="onSpeciesInput" maxlength="100" />
-    <input class="field" placeholder="位置，例如阳台、书房（可选）" value="{{location}}" bindinput="onLocationInput" maxlength="60" />
-    <button class="button" loading="{{saving}}" disabled="{{saving}}" bindtap="savePlant">{{editingId ? '保存修改' : '添加植物'}}</button>
-    <button wx:if="{{editingId}}" class="secondary-button" disabled="{{saving}}" bindtap="cancelEdit">取消编辑</button>
+  <view class="page-heading">
+    <view class="title">我的植物</view>
+    <view class="muted">管理档案和养护记录。</view>
   </view>
 
-  <view wx:if="{{loading}}" class="card muted">正在读取植物档案…</view>
-  <view wx:elif="{{plants.length === 0}}" class="card muted">还没有植物档案，添加一盆开始记录。</view>
+  <view class="card form-card">
+    <view wx:if="{{editingId}}" class="section-title">编辑植物</view>
+    <input class="field" placeholder="植物昵称" value="{{name}}" bindinput="onNameInput" maxlength="60" />
+    <input class="field" placeholder="植物名称或学名（可选）" value="{{species}}" bindinput="onSpeciesInput" maxlength="100" />
+    <view wx:if="{{speciesSuggestions.length}}" class="species-suggestions">
+      <view wx:for="{{speciesSuggestions}}" wx:key="id" class="species-suggestion" data-name="{{item.name_zh}}" bindtap="chooseSpecies">
+        <text>{{item.name_zh}}</text><text wx:if="{{item.scientific_name}}" class="muted">{{item.scientific_name}}</text>
+      </view>
+    </view>
+    <input class="field" placeholder="摆放位置（可选）" value="{{location}}" bindinput="onLocationInput" maxlength="60" />
+    <button class="button" loading="{{saving}}" disabled="{{saving}}" bindtap="savePlant">{{editingId ? '保存修改' : '添加植物'}}</button>
+    <button wx:if="{{editingId}}" class="secondary-button" disabled="{{saving}}" bindtap="cancelEdit">取消</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="card muted empty-state">正在读取…</view>
+  <view wx:elif="{{plants.length === 0}}" class="card muted empty-state">还没有植物，添加一盆开始记录。</view>
   <view wx:else>
+    <view class="list-heading">植物档案 <text class="count">{{plants.length}}</text></view>
     <view wx:for="{{plants}}" wx:key="_id" class="card plant-card">
-      <view class="plant-name">{{item.name}}</view>
-      <view wx:if="{{item.archived}}" class="muted">已归档，待办已停止</view>
+      <view class="plant-topline"><view class="plant-name">{{item.name}}</view><view wx:if="{{item.archived}}" class="status-pill">已归档</view></view>
       <view wx:if="{{item.species}}" class="muted">{{item.species}}</view>
-      <view wx:if="{{item.location}}" class="muted">位置：{{item.location}}</view>
-      <view class="pet-tags"><text>猫：{{item.petSummary.cat === 'toxic' ? '有毒性记录' : item.petSummary.cat === 'non_toxic' ? '资料列为无毒' : '资料未确认'}}</text><text>狗：{{item.petSummary.dog === 'toxic' ? '有毒性记录' : item.petSummary.dog === 'non_toxic' ? '资料列为无毒' : '资料未确认'}}</text></view>
+      <view wx:if="{{item.location}}" class="muted">{{item.location}}</view>
+      <view class="pet-tags"><text>猫 {{item.petSummary.cat === 'toxic' ? '有毒性记录' : item.petSummary.cat === 'non_toxic' ? '资料列为无毒' : '未确认'}}</text><text>狗 {{item.petSummary.dog === 'toxic' ? '有毒性记录' : item.petSummary.dog === 'non_toxic' ? '资料列为无毒' : '未确认'}}</text></view>
       <view class="actions">
         <button class="small-button" data-id="{{item._id}}" bindtap="openDetail">详情</button>
-        <button class="small-button" data-id="{{item._id}}" bindtap="toggleArchive">{{item.archived ? '恢复' : '归档'}}</button>
         <button class="small-button" data-id="{{item._id}}" bindtap="editPlant">编辑</button>
+        <button class="small-button" data-id="{{item._id}}" bindtap="toggleArchive">{{item.archived ? '恢复' : '归档'}}</button>
         <button class="small-button danger-button" data-id="{{item._id}}" bindtap="deletePlant">删除</button>
       </view>
     </view>
