@@ -221,6 +221,22 @@ input.field {
   line-height: 1.6;
 }
 
+.care-expand,
+.care-task-link {
+  margin: 14rpx 0 0;
+  padding: 0;
+  background: transparent;
+  color: #39734d;
+  font-size: 25rpx;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.care-task-link {
+  display: block;
+  font-weight: 600;
+}
+
 .care-scientific {
   margin-top: 4rpx;
   font-style: italic;
@@ -287,6 +303,41 @@ input.field {
 .care-source {
   margin-top: 8rpx;
   overflow-wrap: anywhere;
+}
+
+.sheet-mask {
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(24, 34, 26, 0.32);
+}
+
+.sheet-panel {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 30rpx 30rpx calc(28rpx + env(safe-area-inset-bottom));
+  border-radius: 22rpx 22rpx 0 0;
+  background: #fff;
+}
+
+.sheet-panel .section-title {
+  margin-bottom: 12rpx;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 20rpx;
+}
+
+.sheet-actions button {
+  flex: 1;
+  margin: 0;
 }
 
 .photo-grid {

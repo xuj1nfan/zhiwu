@@ -11,7 +11,7 @@ const STATUS_LABELS: Record<PetStatus, string> = { toxic: "有毒性记录", non
 function localDateTime(value: string | Date) { const d = new Date(value); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
 
 Page({
-  data: { id: "", plant: null as Plant | null, careSpecies: null as CareSpecies | null, careRules: [] as CareRule[], events: [] as CareEvent[], visibleEvents: [] as CareEvent[], photos: [] as PlantPhoto[], comparePhotos: [] as PlantPhoto[], photoDate: localDateTime(new Date()).slice(0, 10), photoNote: "", pendingTasks: [] as PendingTask[], taskNames: ["不关联待办"], selectedTaskIndex: 0, editingEventId: "", filter: "all", filterLabels: ["全部", "浇水", "施肥", "检查", "观察", "里程碑", "换盆"], loading: false, saving: false, eventKindIndex: 0, eventKinds: ["浇水", "施肥", "检查", "观察", "里程碑", "换盆"], eventKindValues: ["water", "fertilize", "check", "observation", "milestone", "repot"] as EventKind[], observationStatuses: ["仍湿", "适中", "偏干", "无法判断"], observationStatusValues: ["wet", "moderate", "dry", "unknown"], observationStatusIndex: 3, occurredDate: localDateTime(new Date()).slice(0, 10), occurredTime: localDateTime(new Date()).slice(11, 16), note: "", amount: "", amountUnit: "毫升", petPreferenceIndex: 0, petPreferences: ["不设置", "养猫", "养狗", "养猫和狗"] },
+  data: { id: "", plant: null as Plant | null, careSpecies: null as CareSpecies | null, careRules: [] as CareRule[], showCareDetails: false, events: [] as CareEvent[], visibleEvents: [] as CareEvent[], photos: [] as PlantPhoto[], comparePhotos: [] as PlantPhoto[], photoDate: localDateTime(new Date()).slice(0, 10), photoNote: "", pendingTasks: [] as PendingTask[], taskNames: ["不关联待办"], selectedTaskIndex: 0, editingEventId: "", filter: "all", filterLabels: ["全部", "浇水", "施肥", "检查", "观察", "里程碑", "换盆"], loading: false, saving: false, eventKindIndex: 0, eventKinds: ["浇水", "施肥", "检查", "观察", "里程碑", "换盆"], eventKindValues: ["water", "fertilize", "check", "observation", "milestone", "repot"] as EventKind[], observationStatuses: ["仍湿", "适中", "偏干", "无法判断"], observationStatusValues: ["wet", "moderate", "dry", "unknown"], observationStatusIndex: 3, occurredDate: localDateTime(new Date()).slice(0, 10), occurredTime: localDateTime(new Date()).slice(11, 16), note: "", amount: "", amountUnit: "毫升", petPreferenceIndex: 0, petPreferences: ["不设置", "养猫", "养狗", "养猫和狗"] },
   onLoad(options: Record<string, string>) { this.setData({ id: options.id || "" }); void this.load(); },
   async load() {
     this.setData({ loading: true });
@@ -40,7 +40,12 @@ Page({
     }
   },
   onTaskChange(event: WechatMiniprogram.PickerChange) { this.setData({ selectedTaskIndex: Number(event.detail.value) }); },
+  toggleCareDetails() { this.setData({ showCareDetails: !this.data.showCareDetails }); },
   onPhotoDateChange(event: WechatMiniprogram.PickerChange) { this.setData({ photoDate: String(event.detail.value) }); },
+  scheduleCheck() {
+    wx.setStorageSync("zhiwu:taskPrefill", { plantId: this.data.id, kind: "check" });
+    wx.switchTab({ url: "/pages/today/index" });
+  },
   onPhotoNoteInput(event: WechatMiniprogram.Input) { this.setData({ photoNote: event.detail.value }); },
   toggleCompare(event: WechatMiniprogram.TouchEvent) { const id = event.currentTarget.dataset.id as string; const selected = this.data.comparePhotos.some((item) => item._id === id) ? this.data.comparePhotos.filter((item) => item._id !== id) : [...this.data.comparePhotos, ...this.data.photos.filter((item) => item._id === id)].slice(-2); this.setData({ comparePhotos: selected }); },
   async deletePhoto(event: WechatMiniprogram.TouchEvent) { const id = event.currentTarget.dataset.id as string; const ok = await new Promise<boolean>((resolve) => wx.showModal({ title: "删除照片？", content: "删除后相册中不再显示。", success: (r) => resolve(r.confirm) })); if (!ok) return; try { await wx.cloud.callFunction({ name: "care-api", data: { action: "photos.delete", id } }); await this.load(); } catch (error) { console.error(error); wx.showToast({ title: "删除失败，请重试", icon: "none" }); } },

@@ -52,4 +52,17 @@
     <view wx:if="{{!completed.length}}" class="muted empty-state">暂无记录</view>
     <view wx:for="{{completed}}" wx:key="_id" class="completed-row"><view>{{item.plantName}} · {{item.kind === 'water' ? '浇水' : item.kind === 'fertilize' ? '施肥' : '检查'}}</view><button class="text-button" data-id="{{item._id}}" bindtap="undoTask">撤销</button></view>
   </view>
+
+  <view wx:if="{{postponeTaskId}}" class="sheet-mask">
+    <view class="sheet-panel">
+      <view class="section-title">选择延期日期</view>
+      <picker mode="date" start="{{postponeMinDate}}" value="{{postponeDate}}" bindchange="onPostponeDateChange">
+        <view class="field"><text class="field-label">日期</text><text class="field-value">{{postponeDate}}</text><text class="chevron">›</text></view>
+      </picker>
+      <view class="sheet-actions">
+        <button class="secondary-button" disabled="{{postponing}}" bindtap="cancelPostponement">取消</button>
+        <button class="button" loading="{{postponing}}" disabled="{{postponing}}" bindtap="confirmPostponement">确定</button>
+      </view>
+    </view>
+  </view>
 </view>

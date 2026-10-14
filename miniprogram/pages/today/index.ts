@@ -6,18 +6,24 @@ const KIND_LABELS: Record<Kind, string> = { water: "浇水", fertilize: "施肥"
 const KINDS: Kind[] = ["water", "fertilize", "check"];
 function dateString(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
 function dayStart(date: Date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime(); }
+function tomorrowString() { const date = new Date(); date.setDate(date.getDate() + 1); return dateString(date); }
 
 Page({
-  data: { plants: [] as PlantOption[], plantNames: [] as string[], selectedPlantIndex: 0, taskKinds: ["浇水", "施肥", "检查"], selectedKindIndex: 0, dueDate: dateString(new Date()), dueTime: "09:00", note: "", tasks: [] as TaskView[], completed: [] as Task[], overdue: [] as TaskView[], today: [] as TaskView[], future: [] as TaskView[], loading: false, saving: false, busyId: "", editingId: "" },
+  data: { plants: [] as PlantOption[], plantNames: [] as string[], selectedPlantIndex: 0, taskKinds: ["浇水", "施肥", "检查"], selectedKindIndex: 0, dueDate: dateString(new Date()), dueTime: "09:00", note: "", tasks: [] as TaskView[], completed: [] as Task[], overdue: [] as TaskView[], today: [] as TaskView[], future: [] as TaskView[], loading: false, saving: false, busyId: "", editingId: "", postponeTaskId: "", postponeDate: tomorrowString(), postponeMinDate: tomorrowString(), postponing: false },
   onShow() { void this.loadData(); },
   async loadData() {
     this.setData({ loading: true });
     try {
       const [p, t, c] = await Promise.all([wx.cloud.callFunction({ name: "care-api", data: { action: "plants.list" } }), wx.cloud.callFunction({ name: "care-api", data: { action: "tasks.list" } }), wx.cloud.callFunction({ name: "care-api", data: { action: "tasks.completedList" } })]);
       const plants = ((p.result as { plants: (PlantOption & { archived?: boolean })[] }).plants || []).filter((item) => !item.archived);
+      const prefill = wx.getStorageSync("zhiwu:taskPrefill") as { plantId?: string; kind?: Kind } | undefined;
+      if (prefill) wx.removeStorageSync("zhiwu:taskPrefill");
+      const previousPlantId = this.data.plants[this.data.selectedPlantIndex]?._id;
+      const preselectedPlantIndex = plants.findIndex((item) => item._id === (prefill?.plantId || previousPlantId));
+      const selectedKindIndex = prefill?.kind ? Math.max(0, KINDS.indexOf(prefill.kind)) : this.data.selectedKindIndex;
       const start = dayStart(new Date());
       const tasks = ((t.result as { tasks: Task[] }).tasks || []).map((task): TaskView => { const due = new Date(task.dueAt); const dueDay = dayStart(due); const group = dueDay < start ? "overdue" : dueDay === start ? "today" : "future"; return { ...task, kindLabel: KIND_LABELS[task.kind] || "养护", dueLabel: `${dateString(due)} ${String(due.getHours()).padStart(2, "0")}:${String(due.getMinutes()).padStart(2, "0")}`, group }; });
-      this.setData({ plants, plantNames: plants.map((item) => item.name), tasks, completed: (c.result as { tasks: Task[] }).tasks || [], overdue: tasks.filter((item) => item.group === "overdue"), today: tasks.filter((item) => item.group === "today"), future: tasks.filter((item) => item.group === "future") });
+      this.setData({ plants, plantNames: plants.map((item) => item.name), selectedPlantIndex: Math.max(0, preselectedPlantIndex), selectedKindIndex, tasks, completed: (c.result as { tasks: Task[] }).tasks || [], overdue: tasks.filter((item) => item.group === "overdue"), today: tasks.filter((item) => item.group === "today"), future: tasks.filter((item) => item.group === "future") });
     } catch (error) { console.error(error); wx.showToast({ title: "读取失败，请稍后重试", icon: "none" }); } finally { this.setData({ loading: false }); }
   },
   onPlantSelect(event: WechatMiniprogram.PickerChange) { this.setData({ selectedPlantIndex: Number(event.detail.value) }); },
@@ -32,7 +38,45 @@ Page({
     try { const data = wasEditing ? { action: "tasks.update", id: this.data.editingId, kind: KINDS[this.data.selectedKindIndex], dueAt: dueAt.toISOString(), note: this.data.note } : { action: "tasks.create", plantId: plant._id, kind: KINDS[this.data.selectedKindIndex], dueAt: dueAt.toISOString(), note: this.data.note }; await wx.cloud.callFunction({ name: "care-api", data }); this.cancelEdit(); wx.showToast({ title: wasEditing ? "已保存" : "已安排", icon: "success" }); await this.loadData(); } catch (error) { console.error(error); wx.showToast({ title: "保存失败，请重试", icon: "none" }); } finally { this.setData({ saving: false }); }
   },
   async completeTask(event: WechatMiniprogram.TouchEvent) { const id = event.currentTarget.dataset.id as string; if (this.data.busyId) return; this.setData({ busyId: id }); try { await wx.cloud.callFunction({ name: "care-api", data: { action: "tasks.complete", id } }); wx.showToast({ title: "已记录完成", icon: "success" }); await this.loadData(); } catch (error) { console.error(error); wx.showToast({ title: "操作失败，请重试", icon: "none" }); } finally { this.setData({ busyId: "" }); } },
-  postponeTask(event: WechatMiniprogram.TouchEvent) { const id = event.currentTarget.dataset.id as string; wx.showActionSheet({ itemList: ["明天", "三天后", "自选日期"], success: async (result) => { const choice = result.tapIndex === 0 ? "tomorrow" : result.tapIndex === 1 ? "three_days" : "custom"; let dueAt = ""; if (choice === "custom") { const value = await new Promise<string>((resolve) => wx.showModal({ title: "输入日期", editable: true, placeholderText: dateString(new Date(Date.now() + 86400000)), success: (r) => resolve(r.confirm ? r.content : "") })); if (!value) return; dueAt = `${value}T09:00:00+08:00`; } try { await wx.cloud.callFunction({ name: "care-api", data: { action: "tasks.postpone", id, choice, dueAt } }); wx.showToast({ title: "已延期", icon: "success" }); await this.loadData(); } catch (error) { console.error(error); wx.showToast({ title: "延期失败，请重试", icon: "none" }); } } }); },
+  postponeTask(event: WechatMiniprogram.TouchEvent) {
+    const id = event.currentTarget.dataset.id as string;
+    wx.showActionSheet({
+      itemList: ["明天", "三天后", "选择日期"],
+      success: async (result) => {
+        if (result.tapIndex === 2) {
+          const task = this.data.tasks.find((item) => item._id === id);
+          const tomorrow = tomorrowString();
+          const taskDate = task ? dateString(new Date(task.dueAt)) : tomorrow;
+          this.setData({ postponeTaskId: id, postponeDate: taskDate > tomorrow ? taskDate : tomorrow, postponeMinDate: tomorrow });
+          return;
+        }
+        await this.savePostponement(id, result.tapIndex === 0 ? "tomorrow" : "three_days");
+      },
+    });
+  },
+  onPostponeDateChange(event: WechatMiniprogram.PickerChange) { this.setData({ postponeDate: String(event.detail.value) }); },
+  cancelPostponement() { this.setData({ postponeTaskId: "" }); },
+  async confirmPostponement() {
+    const task = this.data.tasks.find((item) => item._id === this.data.postponeTaskId);
+    if (!task) return this.cancelPostponement();
+    const oldDue = new Date(task.dueAt);
+    const dueAt = new Date(`${this.data.postponeDate}T${String(oldDue.getHours()).padStart(2, "0")}:${String(oldDue.getMinutes()).padStart(2, "0")}:00`);
+    await this.savePostponement(task._id, "custom", dueAt.toISOString());
+  },
+  async savePostponement(id: string, choice: "tomorrow" | "three_days" | "custom", dueAt?: string) {
+    this.setData({ postponing: true });
+    try {
+      await wx.cloud.callFunction({ name: "care-api", data: { action: "tasks.postpone", id, choice, dueAt } });
+      this.setData({ postponeTaskId: "" });
+      wx.showToast({ title: "已延期", icon: "success" });
+      await this.loadData();
+    } catch (error) {
+      console.error(error);
+      wx.showToast({ title: "延期失败，请重试", icon: "none" });
+    } finally {
+      this.setData({ postponing: false });
+    }
+  },
   async cancelTask(event: WechatMiniprogram.TouchEvent) { const id = event.currentTarget.dataset.id as string; const confirmed = await new Promise<boolean>((resolve) => wx.showModal({ title: "取消任务？", content: "取消后不会生成养护记录。", success: (r) => resolve(r.confirm) })); if (!confirmed) return; try { await wx.cloud.callFunction({ name: "care-api", data: { action: "tasks.cancel", id } }); wx.showToast({ title: "已取消", icon: "success" }); await this.loadData(); } catch (error) { console.error(error); wx.showToast({ title: "取消失败，请重试", icon: "none" }); } },
   async undoTask(event: WechatMiniprogram.TouchEvent) { const id = event.currentTarget.dataset.id as string; try { await wx.cloud.callFunction({ name: "care-api", data: { action: "tasks.undo", id } }); wx.showToast({ title: "已撤销完成", icon: "success" }); await this.loadData(); } catch (error) { console.error(error); wx.showToast({ title: "撤销失败，请重试", icon: "none" }); } },
 });

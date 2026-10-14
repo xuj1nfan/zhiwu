@@ -84,15 +84,19 @@ Page({
     const editing = Boolean(this.data.editingId);
     this.setData({ saving: true });
     try {
-      await wx.cloud.callFunction({
+      const response = await wx.cloud.callFunction({
         name: "care-api",
         data: this.data.editingId
           ? { action: "plants.update", id: this.data.editingId, name, species, location: this.data.location }
           : { action: "plants.create", name, species, location: this.data.location },
       });
+      const created = response.result as { id?: string };
       this.cancelEdit();
       wx.showToast({ title: editing ? "已保存" : "已添加", icon: "success" });
       await this.loadPlants();
+      if (!editing && created.id) {
+        wx.navigateTo({ url: `/pages/plants/detail?id=${encodeURIComponent(created.id)}` });
+      }
     } catch (error) {
       console.error("Failed to create plant", error);
       wx.showToast({ title: "保存失败，请检查云环境", icon: "none" });

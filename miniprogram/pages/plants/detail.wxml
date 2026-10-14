@@ -11,30 +11,34 @@
       <view class="section-caption">常见物种</view>
       <view class="muted">确认学名后才会显示宠物资料。</view>
       <view class="species-actions"><button class="small-button" data-species="Epipremnum aureum" bindtap="confirmCommonSpecies">绿萝</button><button class="small-button" data-species="Chlorophytum comosum" bindtap="confirmCommonSpecies">吊兰</button><button class="small-button" data-species="Chamaedorea elegans" bindtap="confirmCommonSpecies">袖珍椰子</button><button class="small-button" data-species="Lilium lancifolium" bindtap="confirmCommonSpecies">卷丹</button></view>
+      <button class="care-task-link" bindtap="scheduleCheck">安排一次检查</button>
     </view>
 
     <view wx:if="{{careSpecies}}" class="card care-guide-card">
       <view class="section-title">养护建议 · {{careSpecies.name_zh}}</view>
       <view wx:if="{{careSpecies.taxonomy.scientific_name}}" class="muted care-scientific">{{careSpecies.taxonomy.scientific_name}}</view>
-      <view wx:if="{{careSpecies.botanical_profile}}" class="care-description">{{careSpecies.botanical_profile}}</view>
       <view wx:if="{{careSpecies.environment_thresholds}}" class="care-environment">
         <text wx:if="{{careSpecies.environment_thresholds.ideal_temp_min_c && careSpecies.environment_thresholds.ideal_temp_max_c}}">适宜温度 {{careSpecies.environment_thresholds.ideal_temp_min_c}}–{{careSpecies.environment_thresholds.ideal_temp_max_c}}℃</text>
         <text wx:if="{{careSpecies.environment_thresholds.humidity_min_pct && careSpecies.environment_thresholds.humidity_max_pct}}">适宜湿度 {{careSpecies.environment_thresholds.humidity_min_pct}}%–{{careSpecies.environment_thresholds.humidity_max_pct}}%</text>
       </view>
-      <view wx:for="{{careRules}}" wx:key="_id" class="care-stage">
-        <view class="care-stage-title">{{item.stage_name}}</view>
-        <view wx:if="{{item.season_window}}" class="muted care-season">{{item.season_window}}</view>
-        <view wx:if="{{item.light.description}}" class="care-rule"><text class="care-label">光照</text>{{item.light.description}}</view>
-        <view wx:if="{{item.water_and_humidity.trigger_rule}}" class="care-rule"><text class="care-label">浇水时机</text>{{item.water_and_humidity.trigger_rule}}</view>
-        <view wx:if="{{item.water_and_humidity.description}}" class="care-rule"><text class="care-label">浇水与湿度</text>{{item.water_and_humidity.description}}</view>
-        <view wx:if="{{item.fertilizer.description}}" class="care-rule"><text class="care-label">施肥</text>{{item.fertilizer.description}}</view>
-        <view wx:if="{{item.pot_and_substrate.pot_type}}" class="care-rule"><text class="care-label">花盆</text>{{item.pot_and_substrate.pot_type}}</view>
-        <view wx:if="{{item.pot_and_substrate.substrate}}" class="care-rule"><text class="care-label">基质</text>{{item.pot_and_substrate.substrate}}</view>
-        <view wx:if="{{item.pot_and_substrate.repot_and_prune_note}}" class="care-rule"><text class="care-label">换盆与修剪</text>{{item.pot_and_substrate.repot_and_prune_note}}</view>
-      </view>
-      <view wx:if="{{careSpecies.sources.length}}" class="care-sources">
-        <view class="care-label">资料来源</view>
-        <view wx:for="{{careSpecies.sources}}" wx:key="url" class="muted care-source" selectable="true">{{item.title}} · {{item.url}}</view>
+      <button wx:if="{{careRules.length}}" class="care-expand" bindtap="toggleCareDetails">{{showCareDetails ? '收起详细建议' : '查看详细建议'}} · {{careRules.length}} 个生长阶段</button>
+      <view wx:if="{{showCareDetails}}">
+        <view wx:if="{{careSpecies.botanical_profile}}" class="care-description">{{careSpecies.botanical_profile}}</view>
+        <view wx:for="{{careRules}}" wx:key="_id" class="care-stage">
+          <view class="care-stage-title">{{item.stage_name}}</view>
+          <view wx:if="{{item.season_window}}" class="muted care-season">{{item.season_window}}</view>
+          <view wx:if="{{item.light.description}}" class="care-rule"><text class="care-label">光照</text>{{item.light.description}}</view>
+          <view wx:if="{{item.water_and_humidity.trigger_rule}}" class="care-rule"><text class="care-label">浇水时机</text>{{item.water_and_humidity.trigger_rule}}</view>
+          <view wx:if="{{item.water_and_humidity.description}}" class="care-rule"><text class="care-label">浇水与湿度</text>{{item.water_and_humidity.description}}</view>
+          <view wx:if="{{item.fertilizer.description}}" class="care-rule"><text class="care-label">施肥</text>{{item.fertilizer.description}}</view>
+          <view wx:if="{{item.pot_and_substrate.pot_type}}" class="care-rule"><text class="care-label">花盆</text>{{item.pot_and_substrate.pot_type}}</view>
+          <view wx:if="{{item.pot_and_substrate.substrate}}" class="care-rule"><text class="care-label">基质</text>{{item.pot_and_substrate.substrate}}</view>
+          <view wx:if="{{item.pot_and_substrate.repot_and_prune_note}}" class="care-rule"><text class="care-label">换盆与修剪</text>{{item.pot_and_substrate.repot_and_prune_note}}</view>
+        </view>
+        <view wx:if="{{careSpecies.sources.length}}" class="care-sources">
+          <view class="care-label">资料来源</view>
+          <view wx:for="{{careSpecies.sources}}" wx:key="url" class="muted care-source" selectable="true">{{item.title}} · {{item.url}}</view>
+        </view>
       </view>
     </view>
     <view wx:elif="{{plant.species}}" class="card muted">没有找到“{{plant.species}}”对应的养护资料。请填写物种中文名、别名或学名。</view>
